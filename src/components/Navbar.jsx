@@ -38,7 +38,12 @@ export default function Navbar() {
     return () => observer.disconnect();
   }, []);
 
-  const initials = personal.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const initials = personal.name
+    .split(' ')
+    .map(w => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -47,8 +52,9 @@ export default function Navbar() {
         : 'bg-transparent'
     }`}>
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <a href="#home" className="flex items-center gap-3 group">
+
+        {/* 🔥 Logo (magnetic) */}
+        <a href="#home" className="flex items-center gap-3 group magnetic">
           <div className="w-9 h-9 rounded-lg bg-brand-500/20 border border-brand-500/40 flex items-center justify-center group-hover:bg-brand-500/30 transition-colors font-display font-bold text-brand-400 text-sm">
             {initials}
           </div>
@@ -58,13 +64,13 @@ export default function Navbar() {
           </span>
         </a>
 
-        {/* Desktop Links */}
+        {/* 🔥 Desktop Links (magnetic added) */}
         <div className="hidden md:flex items-center gap-8">
           {links.map(link => (
             <a
               key={link.href}
               href={link.href}
-              className={`nav-link font-body text-sm transition-colors duration-200 ${
+              className={`nav-link magnetic font-body text-sm transition-colors duration-200 ${
                 active === link.href
                   ? 'text-brand-400 active'
                   : 'text-gray-400 hover:text-gray-200'
@@ -75,13 +81,19 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* CTA */}
+        {/* 🔥 CTA */}
         <div className="hidden md:flex items-center gap-4">
           <div className="flex items-center gap-2 text-xs text-brand-400 font-mono">
             <span className="glow-dot" />
             Live on AWS
           </div>
-          <a href={personal.resume} className="btn-primary py-2 px-4 text-sm" target="_blank" rel="noreferrer">
+
+          <a
+            href={personal.resume}
+            className="btn-primary py-2 px-4 text-sm magnetic"
+            target="_blank"
+            rel="noreferrer"
+          >
             Resume
           </a>
         </div>
@@ -100,7 +112,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* 🔥 Mobile Menu */}
       <div className={`md:hidden transition-all duration-300 overflow-hidden ${open ? 'max-h-80' : 'max-h-0'}`}>
         <div className="bg-surface-dark/95 backdrop-blur-xl border-b border-surface-border px-6 py-4 space-y-4">
           {links.map(link => (
@@ -113,7 +125,13 @@ export default function Navbar() {
               {link.label}
             </a>
           ))}
-          <a href={personal.resume} className="btn-primary text-sm w-full justify-center" target="_blank" rel="noreferrer">
+
+          <a
+            href={personal.resume}
+            className="btn-primary text-sm w-full justify-center"
+            target="_blank"
+            rel="noreferrer"
+          >
             Download Resume
           </a>
         </div>

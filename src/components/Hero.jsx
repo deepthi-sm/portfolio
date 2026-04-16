@@ -49,10 +49,12 @@ export default function Hero() {
 
         <div className="grid lg:grid-cols-2 gap-12 items-center">
 
-          {/* LEFT SIDE */}
+          {/* LEFT */}
           <div className="space-y-6">
 
-            <p className="text-gray-500 font-mono text-sm">Hello, I'm</p>
+            <p className="text-gray-500 font-mono text-sm">
+              Hello, I'm
+            </p>
 
             <h1 className="font-display font-extrabold text-5xl md:text-6xl text-white">
               {personal.name}
@@ -66,19 +68,25 @@ export default function Hero() {
               {personal.tagline}
             </p>
 
+            {/* 🔥 MAGNETIC BUTTONS */}
             <div className="flex gap-4">
-              <a href="#projects" className="btn-primary">Projects</a>
-              <a href="#contact" className="btn-outline">Contact</a>
+              <a href="#projects" className="btn-primary magnetic">
+                Projects
+              </a>
+
+              <a href="#contact" className="btn-outline magnetic">
+                Contact
+              </a>
             </div>
 
           </div>
 
-          {/* RIGHT SIDE (IMAGE) */}
+          {/* RIGHT (IMAGE) */}
           <div className="flex justify-center">
             <img
               src="/profile.jpg"
               alt="profile"
-              className="w-64 h-64 object-cover rounded-2xl border border-surface-border shadow-lg"
+              className="w-64 h-64 object-cover rounded-2xl border border-surface-border shadow-lg magnetic"
             />
           </div>
 
@@ -86,7 +94,9 @@ export default function Hero() {
 
         {/* SCROLL */}
         <div className="flex justify-center mt-16">
-          <span className="text-gray-500 text-sm">scroll ↓</span>
+          <span className="text-gray-500 text-sm">
+            scroll ↓
+          </span>
         </div>
 
       </div>

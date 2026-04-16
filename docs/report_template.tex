@@ -1,0 +1,382 @@
+% ================================================================
+% Cloud Computing Assessment Report
+% Fill in YOUR details. Compile with pdflatex.
+% ================================================================
+
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{amsmath}
+
+% ── Code listing style ────────────────────────────────────────
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!8},
+  keywordstyle=\color{blue!70},
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{orange!70},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  tabsize=2,
+  captionpos=b,
+}
+
+% ── Header / footer ───────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Cloud Computing Assessment}
+\lhead{Roll No: XXXX -- Your Name}
+\rfoot{\thepage}
+
+% ── Hyperlink colors ──────────────────────────────────────────
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue!70,
+  citecolor=green!50!black,
+}
+
+% ── Section formatting ────────────────────────────────────────
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+
+% ================================================================
+\begin{document}
+
+% ── COVER PAGE ───────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Huge\bfseries Cloud Computing Assessment\par}
+  \vspace{0.5cm}
+  {\Large Portfolio Website Deployment on AWS\par}
+  \vspace{2cm}
+  \rule{\linewidth}{0.4pt}\\[0.5cm]
+  {\large
+    \textbf{Student Name:} Your Full Name\\[0.3cm]
+    \textbf{Roll Number:} XXXXXXXX\\[0.3cm]
+    \textbf{Course:} Cloud Computing (CS4XX)\\[0.3cm]
+    \textbf{Instructor:} Dr. Kalyan N\\[0.3cm]
+    \textbf{Date:} April 2026\\[0.3cm]
+  }
+  \rule{\linewidth}{0.4pt}
+  \vspace{1cm}
+  {\large\textbf{Live URL:}\\
+  \url{http://portfolio-alb-XXXXXXX.us-east-1.elb.amazonaws.com}\\[0.5cm]}
+  {\large\textbf{GitHub:}\\
+  \url{https://github.com/yourusername/cloud-portfolio}}
+  \vfill
+  {\small Department of Computer Science \& Engineering\\
+  XYZ Institute of Technology, Bengaluru}
+\end{titlepage}
+
+% ── TABLE OF CONTENTS ────────────────────────────────────────
+\tableofcontents
+\newpage
+
+% ================================================================
+\section{Introduction}
+
+This report documents the design, implementation, and deployment of a personal portfolio website on Amazon Web Services (AWS), as part of the Cloud Computing course assessment. The objective was to demonstrate practical understanding of core cloud computing concepts including virtual machine provisioning, load balancing, health monitoring, and fault tolerance.
+
+The portfolio website is a single-page React application showcasing my academic and professional background, deployed across two EC2 instances behind an AWS Application Load Balancer (ALB). The deployment spans two Availability Zones (AZs) to achieve geographic redundancy and fault tolerance.
+
+\subsection{Objectives}
+\begin{enumerate}[label=\arabic*.]
+  \item Design and develop a responsive personal portfolio website.
+  \item Deploy the website on AWS EC2 (minimum two instances).
+  \item Configure an Application Load Balancer to distribute traffic.
+  \item Demonstrate fault tolerance by simulating an instance failure.
+  \item Document the complete process with screenshots and analysis.
+\end{enumerate}
+
+% ================================================================
+\section{System Architecture}
+
+\subsection{Architecture Overview}
+
+The deployment follows a classic two-tier web architecture with a load balancing layer:
+
+\begin{verbatim}
+Internet → Route 53 (optional) → AWS ALB
+                                    │
+              ┌─────────────────────┤
+              ▼                     ▼
+       EC2 Instance 1         EC2 Instance 2
+       us-east-1a             us-east-1b
+       (Nginx + React)        (Nginx + React)
+              │                     │
+              └────────┬────────────┘
+                       ▼
+                  Target Group
+              (Health: /health)
+\end{verbatim}
+
+\subsection{Components Used}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Component} & \textbf{AWS Service} & \textbf{Purpose} \\
+\midrule
+Web Servers       & EC2 t2.micro × 2      & Host the portfolio application \\
+Load Balancer     & Application LB (ALB)  & Distribute traffic, health check \\
+Target Group      & ALB Target Group      & Register EC2 instances \\
+Web Server        & Nginx (on EC2)        & Serve static React build \\
+Process Manager   & PM2                   & Keep Node.js alive \\
+Version Control   & GitHub                & Source code repository \\
+\bottomrule
+\end{tabular}
+\caption{AWS and application components}
+\end{table}
+
+\subsection{Load Balancing Strategy}
+
+The AWS ALB uses a \textbf{round-robin algorithm} by default, distributing each incoming HTTP request to the next healthy target in the group. With two instances registered, traffic is split approximately 50/50 between them. This is verified by the custom \texttt{X-Served-By} response header which identifies the responding instance.
+
+\subsection{Fault Tolerance Mechanism}
+
+Fault tolerance is achieved through:
+\begin{itemize}
+  \item \textbf{Health checks:} ALB polls \texttt{/health} on each instance every 30 seconds.
+  \item \textbf{Automatic rerouting:} If an instance fails 2 consecutive checks, it is marked \textit{unhealthy} and removed from the rotation.
+  \item \textbf{Multi-AZ deployment:} Instances are in different Availability Zones, protecting against data center-level failures.
+  \item \textbf{Zero-downtime:} Traffic is seamlessly rerouted to healthy instances without user-visible interruption.
+\end{itemize}
+
+% ================================================================
+\section{Implementation}
+
+\subsection{Website Design}
+
+The portfolio is built with \textbf{React 18} and \textbf{Tailwind CSS}, featuring:
+\begin{itemize}
+  \item Dark-themed UI with a green accent color scheme.
+  \item Animated typing effect on the hero section.
+  \item Scroll-triggered reveal animations using \texttt{IntersectionObserver}.
+  \item Animated skill bars, project cards with hover effects.
+  \item Fully responsive design (mobile, tablet, desktop).
+  \item Contact form with client-side validation.
+\end{itemize}
+
+\subsection{EC2 Instance Setup}
+
+Both instances were launched with Ubuntu 22.04 LTS. The following commands were executed on each:
+
+\begin{lstlisting}[language=bash, caption={System setup on EC2}]
+# Update packages
+sudo apt-get update -y && sudo apt-get upgrade -y
+
+# Install Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Install Nginx
+sudo apt-get install -y nginx
+
+# Clone and build the application
+git clone https://github.com/yourusername/cloud-portfolio.git /var/www/portfolio
+cd /var/www/portfolio
+npm install && npm run build
+\end{lstlisting}
+
+\subsection{Nginx Configuration}
+
+Nginx serves the compiled React build and provides the health check endpoint:
+
+\begin{lstlisting}[language=bash, caption={Nginx server block}]
+server {
+    listen 80;
+    server_name _;
+
+    # Health check for ALB
+    location /health {
+        return 200 'OK';
+        add_header Content-Type text/plain;
+    }
+
+    root /var/www/portfolio/build;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+        gzip on;
+    }
+
+    # Identifies which instance served the request
+    add_header X-Served-By $hostname always;
+}
+\end{lstlisting}
+
+\subsection{Load Balancer Configuration}
+
+\begin{lstlisting}[language=bash, caption={Creating ALB via AWS CLI}]
+# Create target group
+aws elbv2 create-target-group \
+  --name portfolio-tg \
+  --protocol HTTP --port 80 \
+  --vpc-id vpc-XXXXXXXX \
+  --health-check-path /health \
+  --health-check-interval-seconds 30
+
+# Register both EC2 instances
+aws elbv2 register-targets \
+  --target-group-arn arn:aws:... \
+  --targets Id=i-INST1 Id=i-INST2
+
+# Create the Application Load Balancer
+aws elbv2 create-load-balancer \
+  --name portfolio-alb \
+  --subnets subnet-AZ1 subnet-AZ2 \
+  --security-groups sg-XXXXXXXX
+\end{lstlisting}
+
+% ================================================================
+\section{Results and Screenshots}
+
+\subsection{Website Screenshots}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{screenshots/ss_01_home.png}
+  \caption{Portfolio home page with animated hero section, visible at the ALB URL}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{screenshots/ss_03_projects.png}
+  \caption{Projects section showing cloud-deployed applications with technology tags}
+\end{figure}
+
+\subsection{Cloud Deployment Evidence}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{screenshots/ss_07_ec2_instances.png}
+  \caption{AWS EC2 console showing both instances in running state across two Availability Zones}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{screenshots/ss_12_alb_overview.png}
+  \caption{AWS Application Load Balancer overview — active state, DNS name visible}
+\end{figure}
+
+\subsection{Load Balancing Evidence}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{screenshots/ss_15_tg_healthy.png}
+  \caption{Target group health check showing both instances as \textit{healthy}}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{screenshots/ss_16_headers_inst1.png}
+  \caption{Browser DevTools showing \texttt{X-Served-By: ip-10-0-1-XXX} (Instance 1)}
+\end{figure}
+
+\subsection{Fault Tolerance Demonstration}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.48\linewidth}
+    \includegraphics[width=\linewidth]{screenshots/ss_19_inst1_stopped.png}
+    \caption{Instance 1 stopped}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\linewidth}
+    \includegraphics[width=\linewidth]{screenshots/ss_20_post_failure_health.png}
+    \caption{ALB marks it unhealthy}
+  \end{subfigure}
+  \caption{Fault tolerance: Instance 1 stopped → ALB detects failure within 30s}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{screenshots/ss_21_site_after_failure.png}
+  \caption{Portfolio website remains accessible via ALB URL even after Instance 1 failure — served entirely by Instance 2}
+\end{figure}
+
+% ================================================================
+\section{Cloud Concepts Demonstrated}
+
+\subsection{Virtualization}
+Each EC2 instance is a virtual machine running on AWS's physical hardware, abstracting the underlying infrastructure.
+
+\subsection{Elasticity \& Scalability}
+The Auto Scaling Group (optional bonus) automatically adds instances when CPU exceeds 70\%, demonstrating horizontal scalability.
+
+\subsection{High Availability}
+Multi-AZ deployment ensures the application remains available even if an entire AWS Availability Zone experiences an outage.
+
+\subsection{Load Balancing}
+The ALB distributes incoming HTTP requests across healthy instances using round-robin, preventing any single instance from becoming a bottleneck.
+
+\subsection{Fault Tolerance vs. High Availability}
+\begin{itemize}
+  \item \textbf{High Availability} (HA): System is operational most of the time — achieved via multi-AZ, multiple instances.
+  \item \textbf{Fault Tolerance} (FT): System continues operating correctly \textit{despite} component failures — achieved via ALB health checks and automatic rerouting.
+\end{itemize}
+
+% ================================================================
+\section{Challenges and Solutions}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{5cm}p{7cm}}
+\toprule
+\textbf{Challenge} & \textbf{Solution} \\
+\midrule
+React router returns 404 on direct URL access & Configured Nginx \texttt{try\_files} to serve \texttt{index.html} for all routes \\
+ALB health check failing & Added dedicated \texttt{/health} endpoint in Nginx returning HTTP 200 \\
+Instances in different AZs & Explicitly selected subnets from both AZs when creating the ALB \\
+Build files not updating & Added \texttt{git pull \&\& npm run build} to deployment script \\
+\bottomrule
+\end{tabular}
+\caption{Challenges encountered and resolutions}
+\end{table}
+
+% ================================================================
+\section{Conclusion}
+
+This assessment successfully demonstrated the deployment of a production-ready portfolio website on AWS using core cloud computing services. The implementation covered:
+
+\begin{enumerate}[label=\arabic*.]
+  \item A modern, responsive React portfolio website hosted on AWS EC2.
+  \item An Application Load Balancer distributing traffic across two instances in separate Availability Zones.
+  \item Health check–based fault tolerance that automatically reroutes traffic during failures.
+  \item A complete deployment pipeline documented with scripts and commands.
+\end{enumerate}
+
+The hands-on experience reinforced theoretical understanding of cloud elasticity, fault tolerance, and the distinction between high availability and fault tolerance. Future improvements would include HTTPS via ACM, a custom domain via Route 53, and a CI/CD pipeline via GitHub Actions and AWS CodeDeploy.
+
+% ================================================================
+\section*{References}
+\addcontentsline{toc}{section}{References}
+
+\begin{enumerate}
+  \item Amazon Web Services. \textit{Elastic Load Balancing Documentation}. \url{https://docs.aws.amazon.com/elasticloadbalancing/}
+  \item Amazon Web Services. \textit{Amazon EC2 User Guide for Linux}. \url{https://docs.aws.amazon.com/ec2/}
+  \item Nginx. \textit{Nginx Documentation}. \url{https://nginx.org/en/docs/}
+  \item React. \textit{React Documentation}. \url{https://react.dev/}
+  \item Tailwind CSS. \textit{Tailwind CSS Documentation}. \url{https://tailwindcss.com/docs/}
+  \item NIST. \textit{The NIST Definition of Cloud Computing}, SP 800-145. 2011.
+\end{enumerate}
+
+\end{document}

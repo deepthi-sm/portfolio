@@ -86,8 +86,8 @@ export default function Contact() {
           {/* Left: Info */}
           <div className="space-y-8">
             <p className="text-gray-400 text-base leading-relaxed font-body">
-              I'm currently open to cloud engineering roles, internships, and interesting projects.
-              Whether you have a question, want to collaborate, or just want to say hi — my inbox is open!
+              I'm currently open to Internships, and interesting projects.
+              Whether you have a question, want to collaborate, or just want to say hi- my inbox is open!
             </p>
 
             <div className="space-y-4">

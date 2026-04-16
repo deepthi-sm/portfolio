@@ -7,6 +7,7 @@ import Skills from './components/Skills';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import { useMouseGlow } from './hooks/useScrollReveal';
+import CustomCursor from "./components/CustomCursor";
 import './index.css';
 
 export default function App() {
@@ -17,7 +18,7 @@ export default function App() {
 
       {/* Cursor glow */}
       <div id="cursor-glow" className="cursor-glow hidden lg:block" />
-
+      <CustomCursor />
       <Navbar />
 
       <main>

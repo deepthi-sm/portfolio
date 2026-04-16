@@ -65,17 +65,20 @@ export default function Projects() {
 
       <div className="max-w-6xl mx-auto px-6 relative z-10">
 
-        <div
-          ref={ref}
-          className={`mb-14 transition-all duration-700 ${
-            visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}
-        >
-          <p className="section-subtitle">02 — Projects</p>
-          <h2 className="section-title">What I've Built</h2>
-          <div className="w-12 h-0.5 bg-brand-500 mt-4" />
-        </div>
+    <div
+  ref={ref}
+  className={`mb-14 transition-all duration-700 ${
+    visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+  }`}
+>
+  <p className="section-subtitle">02 — Projects</p>
 
+  <h2 className="section-title">What I've Built</h2>
+
+  <p className="text-gray-400 text-sm mt-2">
+    Click a project to learn more!
+  </p>
+</div>
         <div className="grid md:grid-cols-2 gap-6">
           {projects.map((p, i) => (
             <ProjectCard
